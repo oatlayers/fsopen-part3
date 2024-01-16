@@ -1,7 +1,20 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
+
+// if post req and type is json, stringify and return the request body
+morgan.token('postData', (req, res) => {
+    if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
+      return JSON.stringify(req.body)
+    }
+    return ''
+})
+
+// middleware with custom token
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postData'))
 
 app.use(express.json())
+
 
 let persons = [
     { 
@@ -66,7 +79,7 @@ app.post('/api/persons', (req, res) => {
     const body = req.body
     const name = req.body.name
 
-    console.log('value of name:', name)
+    // console.log('value of name:', name)
 
     if (!body.number || !body.name) {
         return res.status(400).json({
@@ -83,9 +96,12 @@ app.post('/api/persons', (req, res) => {
         name: body.name,
         number: body.number
     }
-
-    persons = persons.concat(person)
     
+    persons = persons.concat(person)
+
+    const morganLog = morgan.token(':method :url :status :res[content-length] - :response-time ms')
+    
+    console.log(morganLog)
     res.json(person)
 })
 
@@ -93,5 +109,3 @@ const PORT = 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
-
-

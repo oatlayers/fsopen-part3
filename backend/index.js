@@ -5,6 +5,10 @@ const cors = require('cors')
 
 app.use(cors())
 
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
 // if post req and type is json, stringify and return the request body
 morgan.token('postData', (req, res) => {
     if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
@@ -13,7 +17,7 @@ morgan.token('postData', (req, res) => {
     return ''
 })
 
-// middleware with custom token
+// middleware with custom token postData
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postData'))
 
 app.use(express.json())
@@ -101,11 +105,10 @@ app.post('/api/persons', (req, res) => {
     
     persons = persons.concat(person)
 
-    const morganLog = morgan.token(':method :url :status :res[content-length] - :response-time ms')
-    
-    console.log(morganLog)
     res.json(person)
 })
+
+app.use(unknownEndpoint)
 
 const PORT = 3001
 app.listen(PORT, () => {

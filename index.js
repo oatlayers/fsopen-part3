@@ -21,6 +21,7 @@ morgan.token('postData', (req, res) => {
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postData'))
 
 app.use(express.json())
+app.use(express.static('dist'))
 
 let persons = [
     { 

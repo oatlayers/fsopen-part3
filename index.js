@@ -45,14 +45,18 @@ app.get('/api/persons', (req, res) => {
 // display amount and date of request
 app.get('/info', (req, res) => {
     const timestamp = new Date()
-    const length = persons.length
-    const htmlString = `<p>Phonebook has info for ${length} people</p><p>${timestamp}</p>`
-  
-    res.send(htmlString)
+
+    Person.countDocuments({})
+        .then((count) => {
+            const length = count
+            const htmlString = `<p>Phonebook has info for ${length} people</p><p>${timestamp}</p>`
+            res.send(htmlString)
+        })
+        .catch(error => next(error))
 })
 
 // go to specific resource
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     Person.findById(request.params.id)
       .then(person => {
         if (person) {
@@ -73,8 +77,7 @@ app.delete('/api/persons/:id', (req, res, next) => {
       .catch(error => next(error))
 })
 
-// make new resource and appropriate errors
-// "At this stage, you can ignore whether there is already a person in the database with the same name as the person you are adding."
+// make new resource
 app.post('/api/persons', (req, res) => {
     const body = req.body
     
@@ -90,6 +93,22 @@ app.post('/api/persons', (req, res) => {
     person.save().then(savedPerson => {
         res.json(savedPerson)
     })
+})
+
+// If new entry name is already in the phonebook, update the number by making an HTTP PUT request to the entry's unique URL. Optional { new: true } parameter will cause event handler to be called with the new modified document instead of the original.
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+  
+    const person = {
+        name: body.name,
+        number: body.number,
+    }
+
+    Person.findByIdAndUpdate(request.params.id, person, {new: true})
+      .then(updatedPerson => {
+        response.json(updatedPerson)
+      })
+      .catch(error => next(error))
 })
 
 app.use(unknownEndpoint)

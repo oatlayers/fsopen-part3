@@ -78,7 +78,7 @@ const App = () => {
     //if the name already exists but the number is different/same
     if (persons.find(p => p["name"] === newName)) {
       if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
-        // I don't need id I just need the specific person
+        // To find id I only need the specific person and then .id it
         const findPerson = persons.find(person => person.name === newName)
         const changedPerson = {...findPerson, number: newNum}
 
@@ -93,13 +93,11 @@ const App = () => {
             setPersons(prevPersons => prevPersons.filter(person => person.id !== findPerson.id))
           }
         )
-
         setNewName('')
         setNewNum('')
-      } // if user decided to abort cleans up the input
+      }
       setNewName('')
       setNewNum('')
-      return false
 
     } else {
       const nameObject = {
@@ -122,12 +120,12 @@ const App = () => {
   }
 
   const handleChange = (event) => {
-    console.log(event.target.value)
+    // console.log(event.target.value)
     setNewName(event.target.value)
   }
 
   const handleNumChange = (event) => {
-    console.log(event.target.value)
+    // console.log(event.target.value)
     setNewNum(event.target.value)
   }
 

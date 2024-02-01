@@ -1,7 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 
 app.use(cors())
 
@@ -23,32 +25,11 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 app.use(express.json())
 app.use(express.static('dist'))
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
 // display all persons
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(persons => {
+        res.json(persons)
+    })
 })
 
 // display amount and date of request
@@ -82,36 +63,38 @@ app.delete('/api/persons/:id', (req, res) => {
 })
 
 // make new resource and appropriate errors
+// "At this stage, you can ignore whether there is already a person in the database with the same name as the person you are adding."
+
+// if (!body.number || !body.name) {
+//     return res.status(400).json({
+//         error: 'number or name is missing'
+//     })
+// } else if (persons.find(p => p.name === name)) {
+//     return res.status(400).json({
+//         error: 'name already exists'
+//     })
+// }
+
 app.post('/api/persons', (req, res) => {
-    const body = req.body
-    const name = req.body.name
-
-    // console.log('value of name:', name)
-
-    if (!body.number || !body.name) {
-        return res.status(400).json({
-            error: 'number or name is missing'
-        })
-    } else if (persons.find(p => p.name === name)) {
-        return res.status(400).json({
-            error: 'name already exists'
-        })
-    }
-
-    const person = {
-        id: Math.floor(Math.random() * 1000),
-        name: body.name,
-        number: body.number
+    const body = request.body
+    
+    if (body.content === undefined) {
+        return res.status(400).json({ error: 'content missing' })
     }
     
-    persons = persons.concat(person)
-
-    res.json(person)
+    const person = new Person({
+        name: body.name,
+        number: body.number,
+    })
+    
+    person.save().then(savedPerson => {
+        res.json(savedPerson)
+    })
 })
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })

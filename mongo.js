@@ -1,3 +1,4 @@
+require('dotenv').config()
 const mongoose = require('mongoose')
 
 // when no password is given, ask for one
@@ -10,7 +11,7 @@ const password = process.argv[2]
 const theName = process.argv[3]
 const theNumber = process.argv[4]
 
-const url = `mongodb+srv://lolcraftlolzz:${password}@oatlayersdb.phmciqz.mongodb.net/phonebookApp?retryWrites=true&w=majority`
+const url = process.env.MONGODB_URI
 
 mongoose.set('strictQuery', false)
 mongoose.connect(url)

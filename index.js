@@ -11,6 +11,16 @@ const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
 
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
+  
+    next(error)
+}
+
 // if post req and type is json, stringify and return the request body
 morgan.token('postData', (req, res) => {
     if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
@@ -42,16 +52,16 @@ app.get('/info', (req, res) => {
 })
 
 // go to specific resource
-app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.find(p => p.id === id)
-
-    if (person) {
-        res.json(person)
-    } else {
-        res.statusMessage = "Can't find it"
-        res.status(404).end()
-    }
+app.get('/api/persons/:id', (request, response) => {
+    Person.findById(request.params.id)
+      .then(person => {
+        if (person) {
+          response.json(person)
+        } else {
+          response.status(404).end() 
+        }
+      })
+      .catch(error => next(error))
 })
 
 // delete resource
@@ -65,22 +75,11 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 // make new resource and appropriate errors
 // "At this stage, you can ignore whether there is already a person in the database with the same name as the person you are adding."
-
-// if (!body.number || !body.name) {
-//     return res.status(400).json({
-//         error: 'number or name is missing'
-//     })
-// } else if (persons.find(p => p.name === name)) {
-//     return res.status(400).json({
-//         error: 'name already exists'
-//     })
-// }
-
 app.post('/api/persons', (req, res) => {
-    const body = request.body
+    const body = req.body
     
-    if (body.content === undefined) {
-        return res.status(400).json({ error: 'content missing' })
+    if (body.name === undefined) {
+        return res.status(400).json({ error: 'name missing' })
     }
     
     const person = new Person({
@@ -94,6 +93,7 @@ app.post('/api/persons', (req, res) => {
 })
 
 app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {

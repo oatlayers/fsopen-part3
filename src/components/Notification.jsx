@@ -7,6 +7,18 @@ const Notification = ({message}) => {
                 {message}
             </div>
         )
+    } else if (message.includes('shorter')) {
+        return (
+            <div className='error'>
+                {message}
+            </div>
+        )
+    } else if (message.includes('valid')) {
+        return (
+            <div className='error'>
+                {message}
+            </div>
+        )
     }
     return (
         <div className='success'>

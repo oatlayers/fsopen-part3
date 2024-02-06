@@ -16,7 +16,9 @@ const errorHandler = (error, request, response, next) => {
   
     if (error.name === 'CastError') {
       return response.status(400).send({ error: 'malformatted id' })
-    } 
+    } else if (error.name == 'ValidationError') {
+      return response.status(400).json({ error: error.message })
+    }
   
     next(error)
 }
@@ -77,8 +79,8 @@ app.delete('/api/persons/:id', (req, res, next) => {
       .catch(error => next(error))
 })
 
-// make new resource
-app.post('/api/persons', (req, res) => {
+// make new resource. Minimum length of name is 3 and number is 8. If an HTTP POST request tries to add a person with an invalid phone number, the server should respond with an appropriate status code and error message.
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
     
     if (body.name === undefined) {
@@ -90,9 +92,11 @@ app.post('/api/persons', (req, res) => {
         number: body.number,
     })
     
-    person.save().then(savedPerson => {
+    person.save()
+      .then(savedPerson => {
         res.json(savedPerson)
     })
+      .catch(error => next(error))
 })
 
 // If new entry name is already in the phonebook, update the number by making an HTTP PUT request to the entry's unique URL. Optional { new: true } parameter will cause event handler to be called with the new modified document instead of the original.
